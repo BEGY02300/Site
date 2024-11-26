@@ -1,6 +1,8 @@
 // Import Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-storage.js";
 
 // Config Firebase
 const firebaseConfig = {
@@ -13,58 +15,64 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
 // DOM Elements
-const registerEmail = document.getElementById("register-email");
-const registerPassword = document.getElementById("register-password");
-const registerButton = document.getElementById("register-button");
-
-const loginEmail = document.getElementById("login-email");
-const loginPassword = document.getElementById("login-password");
-const loginButton = document.getElementById("login-button");
-
-const userInfo = document.getElementById("user-info");
+const authDiv = document.getElementById("auth");
+const userHome = document.getElementById("user-home");
 const welcomeMessage = document.getElementById("welcome-message");
-const logoutButton = document.getElementById("logout-button");
+const userAvatar = document.getElementById("user-avatar");
+const userName = document.getElementById("user-name");
+const updateForm = document.getElementById("update-form");
+const newUsername = document.getElementById("new-username");
+const newAvatar = document.getElementById("new-avatar");
 
 // Inscription
-registerButton.addEventListener("click", () => {
-    const email = registerEmail.value;
-    const password = registerPassword.value;
+document.getElementById("register-button").addEventListener("click", async () => {
+    const email = document.getElementById("register-email").value;
+    const password = document.getElementById("register-password").value;
 
-    createUserWithEmailAndPassword(auth, email, password)
-        .then(userCredential => {
-            alert("Inscription réussie !");
-        })
-        .catch(error => {
-            alert("Erreur : " + error.message);
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Crée une entrée dans Firestore pour ce nouvel utilisateur
+        await setDoc(doc(db, "users", user.uid), {
+            email: user.email,
+            username: "Anonyme",
+            avatar: "default-avatar.png"
         });
+
+        alert("Inscription réussie !");
+    } catch (error) {
+        alert("Erreur : " + error.message);
+    }
 });
 
 // Connexion
-loginButton.addEventListener("click", () => {
-    const email = loginEmail.value;
-    const password = loginPassword.value;
+document.getElementById("login-button").addEventListener("click", async () => {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
 
-    signInWithEmailAndPassword(auth, email, password)
-        .then(userCredential => {
-            const user = userCredential.user;
-            welcomeMessage.innerText = `Bienvenue, ${user.email}`;
-            document.getElementById("auth").style.display = "none";
-            userInfo.style.display = "block";
-        })
-        .catch(error => {
-            alert("Erreur : " + error.message);
-        });
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        alert("Erreur : " + error.message);
+    }
 });
 
-// Déconnexion
-logoutButton.addEventListener("click", () => {
-    signOut(auth)
-        .then(() => {
-            document.getElementById("auth").style.display = "block";
-            userInfo.style.display = "none";
-        })
+// Gestion de l'état utilisateur
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Récupère les données de l'utilisateur depuis Firestore
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userData = userDoc.data();
+
+        welcomeMessage.textContent = `Bienvenue, ${userData.email}`;
+        userAvatar.src = userData.avatar;
+        userName.textContent = `Nom d'utilisateur
+
         .catch(error => {
             alert("Erreur : " + error.message);
         });
