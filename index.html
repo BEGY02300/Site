@@ -3,58 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Simple</title>
+    <title>Connexion & Inscription</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <h1>Mon Portfolio</h1>
-            <ul>
-                <li><a href="#about">À propos</a></li>
-                <li><a href="#projects">Projets</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="container">
+        <h1>Bienvenue</h1>
+        <div id="auth">
+            <!-- Formulaire d'inscription -->
+            <div id="register">
+                <h2>Inscription</h2>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <input type="password" id="register-password" placeholder="Mot de passe" required>
+                <button id="register-button">S'inscrire</button>
+            </div>
 
-    <section id="about">
-        <h2>À propos de moi</h2>
-        <p>Je suis un développeur passionné qui aime créer des sites web modernes et interactifs.</p>
-    </section>
-
-    <section id="projects">
-        <h2>Mes Projets</h2>
-        <div class="project">
-            <h3>Projet 1</h3>
-            <p>Un site e-commerce conçu avec HTML, CSS et JavaScript.</p>
+            <!-- Formulaire de connexion -->
+            <div id="login">
+                <h2>Connexion</h2>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Mot de passe" required>
+                <button id="login-button">Se connecter</button>
+            </div>
         </div>
-        <div class="project">
-            <h3>Projet 2</h3>
-            <p>Une application mobile créée avec React Native.</p>
+        <div id="user-info" style="display: none;">
+            <h2 id="welcome-message"></h2>
+            <button id="logout-button">Se déconnecter</button>
         </div>
-    </section>
-
-    <section id="contact">
-        <h2>Contactez-moi</h2>
-        <form id="contactForm">
-            <label for="name">Nom :</label>
-            <input type="text" id="name" name="name" required>
-
-            <label for="email">Email :</label>
-            <input type="email" id="email" name="email" required>
-
-            <label for="message">Message :</label>
-            <textarea id="message" name="message" required></textarea>
-
-            <button type="submit">Envoyer</button>
-        </form>
-    </section>
-
-    <footer>
-        <p>&copy; 2024 Mon Portfolio. Tous droits réservés.</p>
-    </footer>
-
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
