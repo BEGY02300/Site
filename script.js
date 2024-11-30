@@ -4,13 +4,13 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstati
 
 // Configuration Firebase
 const firebaseConfig = {
-  apiKey: "API_KEY",
-  authDomain: "siteweb-721ed.firebaseapp.com",
-  projectId: "siteweb-721ed",
-  storageBucket: "siteweb-721ed.appspot.com",
-  messagingSenderId: "224755625406",
-  appId: "1:224755625406:web:b5791b1a99a6ee55329def",
-  measurementId: "G-NR4Y9DTMR6"
+  apiKey: "AIzaSyBODslZ0PEgPfaoYd9Cmalvg7ubiwnO6nI",
+  authDomain: "site-web-2-3021e.firebaseapp.com",
+  projectId: "site-web-2-3021e",
+  storageBucket: "site-web-2-3021e.firebasestorage.app",
+  messagingSenderId: "992702393992",
+  appId: "1:992702393992:web:cbadca1f8ecb8b134db93d",
+  measurementId: "G-EQ8LQVWX7N"
 };
 
 // Initialisation Firebase
