@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TechSaga</title>
+  <title>TechSaga.com</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -25,12 +25,19 @@
   <div id="userHome" style="display: none;">
     <h1>Bienvenue !</h1>
     <p id="welcomeMessage"></p>
+    <img id="userAvatar" src="./images/default-avatar.png" alt="Avatar utilisateur" width="100">
+    <form id="updateForm">
+      <input type="text" id="newUsername" placeholder="Nouveau pseudo" required>
+      <input type="file" id="newAvatar" accept="image/*">
+      <button type="submit">Mettre à jour</button>
+    </form>
     <button id="logoutButton">Se déconnecter</button>
   </div>
 
   <script src="script.js" type="module"></script>
 </body>
 </html>
+
 
 
 
