@@ -18,6 +18,8 @@
     <form id="signupForm" style="display: none;">
       <input type="email" id="signupEmail" placeholder="Email" required>
       <input type="password" id="signupPassword" placeholder="Mot de passe" required>
+      <input type="text" id="signupUsername" placeholder="Pseudo" required>
+      <input type="file" id="signupAvatar" accept="image/*">
       <button type="submit">S'inscrire</button>
     </form>
   </div>
@@ -25,9 +27,9 @@
   <div id="userHome" style="display: none;">
     <h1>Bienvenue !</h1>
     <p id="welcomeMessage"></p>
-    <img id="userAvatar" src="./images/default-avatar.png" alt="Avatar utilisateur" width="100">
+    <img id="userAvatar" src="./default-avatar.png" alt="Avatar utilisateur" width="100">
     <form id="updateForm">
-      <input type="text" id="newUsername" placeholder="Nouveau pseudo" required>
+      <input type="text" id="newUsername" placeholder="Nouveau pseudo">
       <input type="file" id="newAvatar" accept="image/*">
       <button type="submit">Mettre à jour</button>
     </form>
@@ -37,6 +39,7 @@
   <script src="script.js" type="module"></script>
 </body>
 </html>
+
 
 
 
