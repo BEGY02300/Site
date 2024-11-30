@@ -7,13 +7,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- En-tête -->
-  <header class="header">
-    <img src="logo-techsaga.png" alt="Logo TechSaga" class="logo">
-    <h1 class="site-title">TechSaga</h1>
-  </header>
-
-  <!-- Authentification -->
   <div id="authDiv">
     <h1>Connexion</h1>
     <form id="loginForm">
@@ -29,22 +22,16 @@
     </form>
   </div>
 
-  <!-- Accueil utilisateur -->
   <div id="userHome" style="display: none;">
-    <h1>Bienvenue sur TechSaga !</h1>
+    <h1>Bienvenue !</h1>
     <p id="welcomeMessage"></p>
-    <img id="userAvatar" src="default-avatar.png" alt="Avatar utilisateur" width="100">
-    <form id="updateForm">
-      <input type="text" id="newUsername" placeholder="Nouveau pseudo">
-      <input type="file" id="newAvatar" accept="image/*">
-      <button type="submit">Mettre à jour</button>
-    </form>
     <button id="logoutButton">Se déconnecter</button>
   </div>
 
   <script src="script.js" type="module"></script>
 </body>
 </html>
+
 
 
 
