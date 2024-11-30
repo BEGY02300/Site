@@ -1,9 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-storage.js";
 
 // Configuration Firebase
 const firebaseConfig = {
-  apiKey: "TA_CLE_API",
+  apiKey: "API_KEY",
   authDomain: "siteweb-721ed.firebaseapp.com",
   projectId: "siteweb-721ed",
   storageBucket: "siteweb-721ed.appspot.com",
@@ -15,50 +16,75 @@ const firebaseConfig = {
 // Initialisation Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
-// Gestion des formulaires
+// Éléments DOM
 const authDiv = document.getElementById("authDiv");
 const userHome = document.getElementById("userHome");
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
 const logoutButton = document.getElementById("logoutButton");
+const updateForm = document.getElementById("updateForm");
 
-// Connexion utilisateur
-loginForm.addEventListener("submit", (e) => {
+// Gestion de la connexion
+loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      console.log("Connexion réussie !");
-      displayUserHome(userCredential.user);
-    })
-    .catch((error) => console.error("Erreur de connexion :", error.message));
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    displayUserHome(userCredential.user);
+  } catch (error) {
+    alert("Erreur de connexion : " + error.message);
+  }
 });
 
-// Inscription utilisateur
-signupForm.addEventListener("submit", (e) => {
+// Gestion de l'inscription
+signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("signupEmail").value;
   const password = document.getElementById("signupPassword").value;
 
-  createUserWithEmailAndPassword(auth, email, password)
-    .then(() => alert("Compte créé avec succès !"))
-    .catch((error) => console.error("Erreur d'inscription :", error.message));
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    alert("Compte créé avec succès !");
+    displayUserHome(userCredential.user);
+  } catch (error) {
+    alert("Erreur d'inscription : " + error.message);
+  }
 });
 
-// Déconnexion utilisateur
-logoutButton.addEventListener("click", () => {
-  signOut(auth)
-    .then(() => {
-      console.log("Déconnecté !");
-      displayAuth();
-    })
-    .catch((error) => console.error("Erreur de déconnexion :", error.message));
+// Gestion de la déconnexion
+logoutButton.addEventListener("click", async () => {
+  await signOut(auth);
+  displayAuth();
 });
 
-// Vérification de l'état de connexion
+// Mise à jour des informations utilisateur
+updateForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const newUsername = document.getElementById("newUsername").value;
+  const newAvatar = document.getElementById("newAvatar").files[0];
+
+  try {
+    const user = auth.currentUser;
+    if (newAvatar) {
+      const avatarRef = ref(storage, `avatars/${user.uid}`);
+      await uploadBytes(avatarRef, newAvatar);
+      const avatarURL = await getDownloadURL(avatarRef);
+      await updateProfile(user, { displayName: newUsername, photoURL: avatarURL });
+    } else {
+      await updateProfile(user, { displayName: newUsername });
+    }
+    alert("Profil mis à jour !");
+    displayUserHome(user);
+  } catch (error) {
+    alert("Erreur lors de la mise à jour : " + error.message);
+  }
+});
+
+// Gestion de l'état utilisateur
 onAuthStateChanged(auth, (user) => {
   if (user) {
     displayUserHome(user);
@@ -67,7 +93,7 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Fonctions d'affichage
+// Affichage des sections
 function displayAuth() {
   authDiv.style.display = "block";
   userHome.style.display = "none";
@@ -76,7 +102,8 @@ function displayAuth() {
 function displayUserHome(user) {
   authDiv.style.display = "none";
   userHome.style.display = "block";
-  document.getElementById("welcomeMessage").textContent = `Bonjour, ${user.email}`;
+  document.getElementById("welcomeMessage").textContent = `Bonjour, ${user.displayName || user.email}`;
+  document.getElementById("userAvatar").src = user.photoURL || "default-avatar.png";
 }
 
 
