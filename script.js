@@ -1,11 +1,11 @@
+// Importation des modules Firebase nécessaires
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import { 
   getAuth, 
-  signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
   onAuthStateChanged, 
-  signOut, 
-  updateProfile 
+  signOut 
 } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 import { 
   getStorage, 
@@ -22,102 +22,105 @@ const firebaseConfig = {
   storageBucket: "site-web-2-3021e.appspot.com",
   messagingSenderId: "992702393992",
   appId: "1:992702393992:web:cbadca1f8ecb8b134db93d",
-  measurementId: "G-EQ8LQVWX7N",
+  measurementId: "G-EQ8LQVWX7N"
 };
 
 // Initialisation Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const storage = getStorage(app);
+const auth = getAuth();
+const storage = getStorage();
 
-// Éléments DOM
-const authDiv = document.getElementById("authDiv");
-const userHome = document.getElementById("userHome");
+// Sélecteurs HTML
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
+const showSignUp = document.getElementById("showSignUp");
+const authDiv = document.getElementById("authDiv");
+const userHome = document.getElementById("userHome");
 const logoutButton = document.getElementById("logoutButton");
 const updateForm = document.getElementById("updateForm");
+const welcomeMessage = document.getElementById("welcomeMessage");
+const userAvatar = document.getElementById("userAvatar");
 
-// Gestion de l'inscription
+// Fonction pour afficher l'écran utilisateur
+function displayUserHome(user) {
+  authDiv.style.display = "none";
+  userHome.style.display = "block";
+  welcomeMessage.textContent = `Bienvenue, ${user.email}`;
+}
+
+// Fonction pour revenir à l'écran de connexion
+function displayAuth() {
+  authDiv.style.display = "block";
+  userHome.style.display = "none";
+}
+
+// Gestion des erreurs Firebase
+function handleFirebaseError(error) {
+  switch (error.code) {
+    case "auth/email-already-in-use":
+      alert("Cet email est déjà utilisé. Veuillez en essayer un autre.");
+      break;
+    case "auth/weak-password":
+      alert("Le mot de passe est trop faible. Utilisez au moins 6 caractères.");
+      break;
+    case "auth/user-not-found":
+      alert("Aucun utilisateur trouvé avec cet email.");
+      break;
+    case "auth/wrong-password":
+      alert("Mot de passe incorrect.");
+      break;
+    default:
+      alert("Erreur : " + error.message);
+  }
+}
+
+// Inscription
 signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("signupEmail").value;
   const password = document.getElementById("signupPassword").value;
 
   try {
-    console.log("Tentative d'inscription avec :", email);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    // Message de confirmation et redirection
-    console.log("Compte créé avec succès :", user);
-    alert("Votre compte a été créé avec succès !");
+    alert("Compte créé avec succès !");
     displayUserHome(user);
   } catch (error) {
-    console.error("Erreur d'inscription :", error.message);
-    alert("Erreur : " + error.message);
+    console.error(error);
+    handleFirebaseError(error);
   }
 });
 
-// Gestion de la connexion
+// Connexion
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   try {
-    console.log("Tentative de connexion avec :", email);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    // Connexion réussie
-    console.log("Connexion réussie :", user);
+    alert("Connexion réussie !");
     displayUserHome(user);
   } catch (error) {
-    console.error("Erreur de connexion :", error.message);
-    alert("Erreur : " + error.message);
+    console.error(error);
+    handleFirebaseError(error);
   }
 });
 
-// Gestion de la déconnexion
+// Déconnexion
 logoutButton.addEventListener("click", async () => {
   try {
     await signOut(auth);
-    alert("Vous avez été déconnecté.");
+    alert("Déconnexion réussie !");
     displayAuth();
   } catch (error) {
-    console.error("Erreur lors de la déconnexion :", error.message);
-    alert("Erreur : " + error.message);
+    console.error(error);
+    alert("Erreur lors de la déconnexion : " + error.message);
   }
 });
 
-// Mise à jour des informations utilisateur
-updateForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const newUsername = document.getElementById("newUsername").value;
-  const newAvatar = document.getElementById("newAvatar").files[0];
-
-  try {
-    const user = auth.currentUser;
-
-    if (newAvatar) {
-      const avatarRef = ref(storage, `avatars/${user.uid}`);
-      await uploadBytes(avatarRef, newAvatar);
-      const avatarURL = await getDownloadURL(avatarRef);
-      await updateProfile(user, { displayName: newUsername, photoURL: avatarURL });
-    } else {
-      await updateProfile(user, { displayName: newUsername });
-    }
-
-    alert("Profil mis à jour !");
-    displayUserHome(user);
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour :", error.message);
-    alert("Erreur : " + error.message);
-  }
-});
-
-// État de l'utilisateur
+// Surveillance de l'état de connexion
 onAuthStateChanged(auth, (user) => {
   if (user) {
     displayUserHome(user);
@@ -125,20 +128,6 @@ onAuthStateChanged(auth, (user) => {
     displayAuth();
   }
 });
-
-// Affichage des sections
-function displayAuth() {
-  authDiv.style.display = "block";
-  userHome.style.display = "none";
-}
-
-function displayUserHome(user) {
-  authDiv.style.display = "none";
-  userHome.style.display = "block";
-
-  document.getElementById("welcomeMessage").textContent = `Bonjour, ${user.displayName || user.email}`;
-  document.getElementById("userAvatar").src = user.photoURL || "default-avatar.png";
-}
 
 
 
