@@ -7,12 +7,6 @@ import {
   onAuthStateChanged, 
   signOut 
 } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-import { 
-  getStorage, 
-  ref, 
-  uploadBytes, 
-  getDownloadURL 
-} from "https://www.gstatic.com/firebasejs/9.17.1/firebase-storage.js";
 
 // Configuration Firebase
 const firebaseConfig = {
@@ -28,7 +22,6 @@ const firebaseConfig = {
 // Initialisation Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
-const storage = getStorage();
 
 // Sélecteurs HTML
 const loginForm = document.getElementById("loginForm");
@@ -37,9 +30,7 @@ const showSignUp = document.getElementById("showSignUp");
 const authDiv = document.getElementById("authDiv");
 const userHome = document.getElementById("userHome");
 const logoutButton = document.getElementById("logoutButton");
-const updateForm = document.getElementById("updateForm");
 const welcomeMessage = document.getElementById("welcomeMessage");
-const userAvatar = document.getElementById("userAvatar");
 
 // Fonction pour afficher l'écran utilisateur
 function displayUserHome(user) {
@@ -76,7 +67,7 @@ function handleFirebaseError(error) {
 
 // Inscription
 signupForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  e.preventDefault(); // Empêche le rechargement de la page
   const email = document.getElementById("signupEmail").value;
   const password = document.getElementById("signupPassword").value;
 
@@ -93,7 +84,7 @@ signupForm.addEventListener("submit", async (e) => {
 
 // Connexion
 loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  e.preventDefault(); // Empêche le rechargement de la page
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
@@ -128,6 +119,14 @@ onAuthStateChanged(auth, (user) => {
     displayAuth();
   }
 });
+
+// Afficher le formulaire d'inscription
+showSignUp.addEventListener("click", (e) => {
+  e.preventDefault(); // Empêche l'action par défaut du lien
+  signupForm.style.display = "block";
+  loginForm.style.display = "none";
+});
+
 
 
 
