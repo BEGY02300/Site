@@ -1,122 +1,113 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js';
-import { getFirestore, collection, addDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.17.1/firebase-storage.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-storage.js";
 
+// Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBODslZ0PEgPfaoYd9Cmalvg7ubiwnO6nI",
   authDomain: "site-web-2-3021e.firebaseapp.com",
   projectId: "site-web-2-3021e",
-  storageBucket: "site-web-2-3021e.firebasestorage.app",
+  storageBucket: "site-web-2-3021e.appspot.com",
   messagingSenderId: "992702393992",
   appId: "1:992702393992:web:cbadca1f8ecb8b134db93d",
   measurementId: "G-EQ8LQVWX7N"
 };
 
+// Initialisation Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+// Références aux éléments HTML
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
-const showSignUp = document.getElementById("showSignUp");
 const userHome = document.getElementById("userHome");
 const authDiv = document.getElementById("authDiv");
-const welcomeMessage = document.getElementById("welcomeMessage");
-const logoutButton = document.getElementById("logoutButton");
-const updateForm = document.getElementById("updateForm");
-const newUsername = document.getElementById("newUsername");
-const newAvatar = document.getElementById("newAvatar");
-const userAvatar = document.getElementById("userAvatar");
 
-showSignUp.addEventListener("click", () => {
-  signupForm.style.display = "block";
-  loginForm.style.display = "none";
+// Vérification pseudo unique
+async function isUsernameTaken(username) {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("username", "==", username));
+  const querySnapshot = await getDocs(q);
+  return !querySnapshot.empty;
+}
+
+// Sauvegarde des données utilisateur
+async function saveUserData(userId, username, avatarUrl) {
+  await setDoc(doc(db, "users", userId), {
+    username: username,
+    avatar: avatarUrl || "./default-avatar.png",
+    createdAt: new Date().toISOString()
+  });
+}
+
+// Gestion de l'inscription
+signupForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("signupEmail").value;
+  const password = document.getElementById("signupPassword").value;
+  const username = document.getElementById("signupUsername").value;
+  const avatarFile = document.getElementById("signupAvatar").files[0];
+
+  if (await isUsernameTaken(username)) {
+    alert("Ce pseudo est déjà pris !");
+    return;
+  }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userId = userCredential.user.uid;
+
+    let avatarUrl = "./default-avatar.png";
+    if (avatarFile) {
+      const avatarRef = ref(storage, `avatars/${userId}`);
+      await uploadBytes(avatarRef, avatarFile);
+      avatarUrl = await getDownloadURL(avatarRef);
+    }
+
+    await saveUserData(userId, username, avatarUrl);
+    alert("Compte créé avec succès !");
+    signupForm.reset();
+  } catch (error) {
+    console.error(error.message);
+    alert("Erreur lors de la création du compte !");
+  }
 });
 
+// Gestion de la connexion
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   try {
-    await signInWithEmailAndPassword(auth, email, password);
-    loadUserHome();
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userId = userCredential.user.uid;
+
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      document.getElementById("welcomeMessage").innerText = `Bienvenue, ${userData.username}!`;
+      document.getElementById("userAvatar").src = userData.avatar;
+      authDiv.style.display = "none";
+      userHome.style.display = "block";
+    }
   } catch (error) {
-    console.error("Erreur de connexion", error);
+    console.error(error.message);
+    alert("Erreur de connexion !");
   }
 });
 
-signupForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("signupEmail").value;
-  const password = document.getElementById("signupPassword").value;
-
-  try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    signupForm.style.display = "none";
-    loginForm.style.display = "block";
-  } catch (error) {
-    console.error("Erreur d'inscription", error);
-  }
-});
-
-logoutButton.addEventListener("click", async () => {
+// Gestion de la déconnexion
+document.getElementById("logoutButton").addEventListener("click", async () => {
   await signOut(auth);
   authDiv.style.display = "block";
   userHome.style.display = "none";
 });
-
-updateForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const username = newUsername.value;
-  if (!username || username.length < 3) {
-    alert("Le nom d'utilisateur doit comporter au moins 3 caractères.");
-    return;
-  }
-
-  // Vérification si le nom d'utilisateur est déjà pris
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("username", "==", username));
-  const querySnapshot = await getDocs(q);
-  if (!querySnapshot.empty) {
-    alert("Ce nom d'utilisateur est déjà pris.");
-    return;
-  }
-
-  // Vérification de l'image (pas de contenu PEGI 18)
-  const avatarFile = newAvatar.files[0];
-  if (avatarFile) {
-    const avatarRef = ref(storage, `avatars/${auth.currentUser.uid}`);
-    await uploadBytes(avatarRef, avatarFile);
-    const avatarURL = await getDownloadURL(avatarRef);
-
-    // Mise à jour des données utilisateur
-    const userRef = collection(db, "users");
-    await addDoc(userRef, {
-      username,
-      avatar: avatarURL
-    });
-
-    alert("Votre profil a été mis à jour avec succès!");
-  }
-});
-
-async function loadUserHome() {
-  authDiv.style.display = "none";
-  userHome.style.display = "block";
-  welcomeMessage.innerText = `Bienvenue ${auth.currentUser.email}`;
-
-  const userRef = collection(db, "users");
-  const q = query(userRef, where("email", "==", auth.currentUser.email));
-  const querySnapshot = await getDocs(q);
-  if (!querySnapshot.empty) {
-    const userData = querySnapshot.docs[0].data();
-    userAvatar.src = userData.avatar;
-  }
-}
 
 
 
